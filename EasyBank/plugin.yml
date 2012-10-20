@@ -1,0 +1,67 @@
+name: EasyBank
+author: Madlaine
+version: 0.6
+main: fr.Madlaine.EasyBank.EasyBank
+depend: [Vault]
+commands:
+   bank:
+      description: Show help menu.
+      usage: /<command> <depo/take/look> [ammount]
+   banker:
+      description: Show help menu.
+      usage: /<command> <depo/debit/look> <Player> [ammount]
+   bankadmin:
+      description: Show help menu.
+      usage: /<command> <set/give/take> <Player> [ammount]
+permissions:
+    EasyBank.createBA:
+        description: Allows the player create his Bank Account.
+    EasyBank.depo:
+        description: Allows the player to deposit money.
+    EasyBank.debit:
+        description: Allows the player to debit money.
+    EasyBank.look:
+        description: Allows the player to look his bank account amount.
+    EasyBank.helpmenu:
+        description: Allows the player to show the Help menu.
+    EasyBank.connectmessage:
+        description: Allows the player to see the welcome message.
+    EasyBank.sign.create.disp:
+        description: Allows the player to create EasyBank display sign.
+    EasyBank.sign.create.depo:
+        description: Allows the player to create EasyBank deposit sign.
+    EasyBank.sign.create.debit:
+        description: Allows the player to create EasyBank debit sign.
+    EasyBank.sign.use.depo:
+        description: Allows the player to create EasyBank deposit sign.
+    EasyBank.sign.use.debit:
+        description: Allows the player to create EasyBank debit sign.
+    EasyBank.sign.break.disp.my:
+        description: Allows the player to break his EasyBank disp sign.
+    EasyBank.sign.break.disp.other:
+        description: Allows the player to break the other player EasyBank disp sign.
+    EasyBank.sign.break.debit:
+        description: Allows the player to break EasyBank debit sign.
+    EasyBank.sign.break.depo:
+        description: Allows the player to break EasyBank depo sign.
+    EasyBank.*:
+        description: Give all EasyBank permission to the player.
+        default: op
+    EasyBank.banker.depo:
+        description: Allows the banker to deposit money.
+    EasyBank.banker.debit:
+        description: Allows the banker to debit money.
+    EasyBank.banker.helpmenu:
+        description: Allows the banker to show the Help menu.
+    EasyBank.banker.look:
+        description: Allows the banker to look a bank account amount.
+    EasyBank.banker.*:
+        description: Give all Banker permission.
+    EasyBank.admin.helpmenu:
+        description: Allow the player to show the help menu.
+    EasyBank.admin.set:
+        description: Allow the player to set the Bank account amount.
+    EasyBank.admin.give:
+        description: Allow the player to set the Bank account amount.
+    EasyBank.admin.take:
+        description: Allow the player to set the Bank account amount.
