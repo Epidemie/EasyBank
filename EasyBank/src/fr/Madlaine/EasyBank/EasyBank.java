@@ -84,23 +84,33 @@ public class EasyBank extends JavaPlugin{
         localFile = new File(this.getDataFolder(), "local.yml");
         local = YamlConfiguration.loadConfiguration(localFile);
         
-        
-        if(!config.getString("Version").equalsIgnoreCase("0.6a")){
+        try {
+	        if(!config.getString("Version").equalsIgnoreCase("0.6a")){
+	        	try {
+	        		configSet();
+	        		config.save(configFile);
+	        		logger.info(logTag + "Successfully created config.yml");
+	        	} catch (Exception e) {
+	        		logger.severe(logTag + "IOException when creating config.yml in Main.");
+	            	e.printStackTrace();
+	        	}
+	        } else {
+	        	logger.info(logTag + "Core Config file loaded.");
+	        }
+        } catch (NullPointerException e) {
         	try {
         		configSet();
         		config.save(configFile);
         		logger.info(logTag + "Successfully created config.yml");
-        	} catch (Exception e) {
+        	} catch (Exception e1) {
         		logger.severe(logTag + "IOException when creating config.yml in Main.");
-            	e.printStackTrace();
+            	e1.printStackTrace();
         	}
-        } else {
-        	logger.info(logTag + "Core Config file loaded.");
         }
         
         LogtoConsol = config.getBoolean("logger");
-        InitialHoldings = config.getDouble("Initial_Holding");
-        CreateCost = config.getDouble("Create_Account_Cost");
+        InitialHoldings = config.getDouble("Initial_Holding", 0D);
+        CreateCost = config.getDouble("Create_Account_Cost", 0D);
         
         if (signFile.exists()) {
         	logger.info(logTag + "Core Sign file loaded.");
