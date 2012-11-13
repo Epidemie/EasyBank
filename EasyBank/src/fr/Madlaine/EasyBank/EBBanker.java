@@ -5,17 +5,15 @@ import org.bukkit.entity.Player;
 
 import net.milkbowl.vault.economy.Economy;
 
-public class EBBanker {
+public class EBBanker{
 	
 	private Economy eco;
-	private EasyBank plugin;
 	private EBChat EBChat;
 	private EBStorage storage;
 
-	public EBBanker(EBChat eBChat2, EBStorage storage2, EasyBank easyBank) {
+	public EBBanker(EBChat eBChat2, EBStorage storage2) {
 		this.EBChat = eBChat2;
 		this.storage = storage2;
-		this.plugin = easyBank;
 	}
 
 	public boolean setupEconomy(Economy economy) {
@@ -23,7 +21,6 @@ public class EBBanker {
 		return true;
 	}
 
-	//Banker Depo amount on the player bank account
 	public void onBankerDepo(String player, String Banker, double amount) {
 		try {
 			double bankamnt = storage.getData(player);
@@ -51,7 +48,6 @@ public class EBBanker {
 		}
 	}
 	
-	//Banker Depo amount on the player bank account
 	public void onBankerDebit(String player, String Banker, double amount) {
 			try {
 				double bankamnt = storage.getData(player);
@@ -68,7 +64,6 @@ public class EBBanker {
 			}
 	}
 
-	//Get The amount of Player Bank account
 	public void onBankerLook(String Banker, String player) {
 		try {
 			double bankamnt = storage.getData(player);

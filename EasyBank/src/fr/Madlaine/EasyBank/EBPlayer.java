@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 
 import net.milkbowl.vault.economy.Economy;
 
-public class EBPlayer {
+public class EBPlayer{
 	
 	private Economy eco;
 	private EBStorage storage;
@@ -23,7 +23,6 @@ public class EBPlayer {
 		return true;
 	}
 
-	//Get the player Bank account amount
 	public void onLook(String player) {
 		try {
 			double amount = storage.getData(player);
@@ -33,7 +32,6 @@ public class EBPlayer {
 		}
 	}
 
-	//Debit amount on the player bank account
 	public void onDebit(String player, double amount) {
 		if (amount > 0) {
 			try {
@@ -54,7 +52,6 @@ public class EBPlayer {
 		}
 	}
 
-	//Depo amount
 	public void onDepo(String player, double amount) {
 		double InitialHoldings = plugin.InitialHoldings;
 		double CreateCost = plugin.CreateCost;
@@ -96,6 +93,30 @@ public class EBPlayer {
 			}
 		} else {
 			EBChat.invalidAmount(player);
+		}
+	}
+
+	public void onPlayerPay(String p1, double amount, String p2) {
+		if(amount > 0) {
+			if(!p1.equalsIgnoreCase(p2)) {
+				try{
+					double bap1 = storage.getData(p1);
+					double bap2 = storage.getData(p2);
+					if(amount <= bap1) {
+						storage.addData(p1, bap1 - amount);
+						storage.addData(p2, bap2 + amount);
+						EBChat.PlayerPay(p1, p2, amount, bap2+amount, bap1-amount);
+					} else {
+						EBChat.PlayerDebitNotEnough(p1);
+					}
+				} catch (NullPointerException e) {
+					EBChat.PlayerPayNoBA(p1, p2);
+				}
+			} else {
+				EBChat.PlayerCantPayHiself(p1);
+			}
+		} else {
+			EBChat.invalidAmount(p1);
 		}
 	}
 }

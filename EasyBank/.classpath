@@ -2,9 +2,10 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="C:/Users/Geant/Desktop/TheMadBox/plugindev/mysql-connector-java-5.1.22/mysql-connector-java-5.1.22-bin.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Geant/Desktop/TheMadBox/plugindev/Vault.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Geant/Desktop/TheMadBox/plugindev/bukkit-1.3.2-R2.0.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Geant/Desktop/TheMadBox/plugindev/craftbukkit-1.3.2-R2.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Geant/Desktop/TheMadBox/JavaBuildPath/mysql-connector-java-5.1.22/mysql-connector-java-5.1.22-bin.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Geant/Desktop/TheMadBox/JavaBuildPath/bukkit-1.4.2-R0.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Geant/Desktop/TheMadBox/JavaBuildPath/craftbukkit-1.4.2-R0.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Geant/Desktop/TheMadBox/JavaBuildPath/LWC.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Geant/Desktop/TheMadBox/JavaBuildPath/Vault.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

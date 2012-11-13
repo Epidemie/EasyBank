@@ -49,6 +49,7 @@ public class EBChat {
         	local.set("Bank.HelpMenu2", "&a<Command>&f - deposits money on your bank account");
         	local.set("Bank.HelpMenu3", "&a<Command>&f - debits money from your bank account");
         	local.set("Bank.HelpMenu4", "&a<Command>&f - look into your bank account");
+        	local.set("Bank.HelpMenu6", "&a<Command>&f - Pay another player");
         	local.set("Bank.HelpMenu5", "&a<Command>&f - Display help menu");
         	local.set("Bank.look", "You've &a<BankAmount>&f on your Bank account.");
         	local.set("Bank.Depo", "You've successfully deposited &a<Depo>&f on your bank account.");
@@ -58,6 +59,10 @@ public class EBChat {
         	local.set("Bank.CreateCost", "You've pay &a<Cost>&f of cost.");
         	local.set("Bank.NoBankAccount", "You don't have a bank account, you've to deposit any amount to create one.");
         	local.set("Bank.CreatedBA", "You've successfully created and deposited &a<Depo>&f on your bank account.");
+        	local.set("Bank.Pay", "You've successfully deposited &a<Pay>&f from your bank account to the &a<Player>&f bank account.");
+        	local.set("Bank.Payed", "&a<Player>&f has deposited &a<Pay>&f on your bank account.");
+        	local.set("Bank.paynoBa", "You, or &a<Player>&f don't have Bank account !");
+        	local.set("Bank.payHiself", "&4You can't pay yourself !");
         	
         	local.set("Banker.HelpMenu1", "&aBanker's commands:");
         	local.set("Banker.HelpMenu2", "&a<Command>&f - deposits money on the player bank account");
@@ -165,16 +170,20 @@ public class EBChat {
 		String msg3 = replaceMsg(local.getString("Bank.HelpMenu3"));
 		String msg4 = replaceMsg(local.getString("Bank.HelpMenu4"));
 		String msg5 = replaceMsg(local.getString("Bank.HelpMenu5"));
+		String msg6 = replaceMsg(local.getString("Bank.HelpMenu6"));
+		
 		Player p = Bukkit.getPlayer(player);
 		
 		msg2 = msg2.replaceAll("<Command>", "/bank depo <amount>");
 		msg3 = msg3.replaceAll("<Command>", "/bank debit <amount>");
 		msg4 = msg4.replaceAll("<Command>", "/bank");
 		msg5 = msg5.replaceAll("<Command>", "/bank <?/help>");
+		msg6 = msg6.replaceAll("<Command>",	"/bank pay <amount> <Player>");
 		
 		p.sendMessage(msg1);
 		p.sendMessage(msg2);
 		p.sendMessage(msg3);
+		p.sendMessage(msg6);
 		p.sendMessage(msg4);
 		p.sendMessage(msg5);
 	}
@@ -285,6 +294,10 @@ public class EBChat {
 		
 		p.sendMessage(msg1);
 		p.sendMessage(msg2);
+		
+		if (LogtoConsol) {
+			logger.info(logTag + player + " has debited " + eco.format(amount) + " from his bank account");
+		}
 	}
 
 	//Display that the player hasn't enough money
@@ -307,6 +320,10 @@ public class EBChat {
 		
 		p.sendMessage(msg1);
 		p.sendMessage(msg2);
+		
+		if (LogtoConsol) {
+			logger.info(logTag + player + " has deposited " + eco.format(amount) + " on his bank account");
+		}
 	}
 
 	//Display that the player has successfully created Bank Account
@@ -317,6 +334,10 @@ public class EBChat {
 		Player p = Bukkit.getPlayer(player);
 		
 		p.sendMessage(msg1);
+		
+		if (LogtoConsol) {
+			logger.info(logTag + player + " has created and deposited " + eco.format(amount) + " on his bank account");
+		}
 	}
 
 	//Display that the player hasn't enough money to the banker
@@ -338,6 +359,10 @@ public class EBChat {
 		Player p = Bukkit.getPlayer(banker);
 		
 		p.sendMessage(msg1);
+		
+		if (LogtoConsol) {
+			logger.info(logTag + banker + " has deposited " + eco.format(amount) + " on the " + player + " bank account");
+		}
 		
 		try{
 			Player p2 = Bukkit.getPlayer(player);
@@ -395,9 +420,13 @@ public class EBChat {
 		
 		p.sendMessage(msg1);
 		
+		if (LogtoConsol) {
+			logger.info(logTag + banker + " has debited " + eco.format(amount) + " from the " + player + " bank account");
+		}
+		
 		try{
 			Player p2 = Bukkit.getPlayer(player);
-			String msg2 = replaceMsg(local.getString("Banker.Deposited1"));
+			String msg2 = replaceMsg(local.getString("Banker.Debited1"));
 			String msg3 = replaceMsg(local.getString("BankAcntAmnt"));
 			msg2 = msg2.replaceAll("<Banker>", banker);
 			msg2 = msg2.replaceAll("<Debit>", eco.format(amount));
@@ -450,6 +479,10 @@ public class EBChat {
 		Player p = Bukkit.getPlayer(admin);
 		
 		p.sendMessage(msg1);
+		
+		if (LogtoConsol) {
+			logger.info(logTag + admin + " has took " + eco.format(amount) + " from the " + player + " bank account");
+		}
 	}
 
 	//Display that the admin successfully give amount on the player bank account
@@ -461,6 +494,10 @@ public class EBChat {
 		Player p = Bukkit.getPlayer(admin);
 		
 		p.sendMessage(msg1);
+		
+		if (LogtoConsol) {
+			logger.info(logTag + admin + " has given " + eco.format(amount) + " on the " + player + " bank account");
+		}
 	}
 
 	//Display that the admin successfully created the player bank account and deposited amount on it
@@ -483,6 +520,10 @@ public class EBChat {
 		Player p = Bukkit.getPlayer(admin);
 		
 		p.sendMessage(msg1);
+		
+		if (LogtoConsol) {
+			logger.info(logTag + admin + " set to " + eco.format(amount) + " the " + player + " bank account");
+		}
 	}
 
 	//Display the player bank account amount
@@ -529,6 +570,50 @@ public class EBChat {
 		String msg1 = replaceMsg(local.getString("Bank.CreateCost"));
 		msg1 = msg1.replaceAll("<Cost>", eco.format(CreateCost));
 		Player p = Bukkit.getPlayer(player);
+		
+		p.sendMessage(msg1);
+	}
+
+	public void PlayerPay(String p1, String p2, double amount, double newBAp2, double newBAp1) {
+		FileConfiguration local = plugin.local;
+		String msg1 = replaceMsg(local.getString("Bank.Pay"));
+		String msg4 = replaceMsg(local.getString("BankAcntAmnt"));
+		msg4 = msg4.replaceAll("<BankAmount>", eco.format(newBAp1));
+		msg1 = msg1.replaceAll("<Player>", p2);
+		msg1 = msg1.replaceAll("<Pay>", eco.format(amount));
+		Player p = Bukkit.getPlayer(p1);
+		
+		p.sendMessage(msg1);
+		p.sendMessage(msg4);
+		
+		try {
+			String msg2 = replaceMsg(local.getString("Bank.Payed"));
+			String msg3 = replaceMsg(local.getString("BankAcntAmnt"));
+			msg3 = msg3.replaceAll("<BankAmount>", eco.format(newBAp2));
+			msg2 = msg2.replaceAll("<Player>", p1);
+			msg2 = msg2.replaceAll("<Pay>", eco.format(amount));
+			Player pl = Bukkit.getPlayer(p2);
+			
+			pl.sendMessage(msg2);
+			pl.sendMessage(msg3);
+		} catch (NullPointerException e) {
+			
+		}
+	}
+
+	public void PlayerPayNoBA(String p1, String p2) {
+		FileConfiguration local = plugin.local;
+		String msg1 = replaceMsg(local.getString("Bank.paynoBa"));
+		msg1 = msg1.replaceAll("<Player>", p2);
+		Player p = Bukkit.getPlayer(p1);
+		
+		p.sendMessage(msg1);
+	}
+
+	public void PlayerCantPayHiself(String p1) {
+		FileConfiguration local = plugin.local;
+		String msg1 = replaceMsg(local.getString("Bank.payHiself"));
+		Player p = Bukkit.getPlayer(p1);
 		
 		p.sendMessage(msg1);
 	}

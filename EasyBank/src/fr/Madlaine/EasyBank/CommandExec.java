@@ -4,19 +4,14 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.logging.Logger;
 
-import net.milkbowl.vault.economy.Economy;
-
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.fusesource.jansi.Ansi;
 
 public class CommandExec implements CommandExecutor {
 	
-	private EasyBank plugin;
 	private EBBankAdmin AdminControl;
 	private EBBanker BankerControl;
 	private EBPlayer PlayerControl;
@@ -24,12 +19,11 @@ public class CommandExec implements CommandExecutor {
 	private static Logger logger = Logger.getLogger("Minecraft");
 	private static String logTag = Ansi.ansi().fg(Ansi.Color.WHITE).boldOff().toString() + "[" + Ansi.ansi().fg(Ansi.Color.WHITE).bold().toString() + "Easy" + Ansi.ansi().fg(Ansi.Color.YELLOW).boldOff().toString() + "Bank" + Ansi.ansi().fg(Ansi.Color.WHITE).boldOff().toString() + "] " + Ansi.ansi().fg(Ansi.Color.WHITE).bold().toString();
 
-	public CommandExec(EBBankAdmin adminControl2, EBBanker bankerControl2, EBPlayer playerControl2, EBChat eBChat2, EasyBank easyBank) {
+	public CommandExec(EBBankAdmin adminControl2, EBBanker bankerControl2, EBPlayer playerControl2, EBChat eBChat2) {
 		this.AdminControl = adminControl2;
 		this.BankerControl = bankerControl2;
 		this.PlayerControl = playerControl2;
 		this.EBChat = eBChat2;
-		this.plugin = easyBank;
 	}
 
 	@Override
@@ -58,6 +52,17 @@ public class CommandExec implements CommandExecutor {
 							final NumberFormat formatter = NumberFormat.getInstance();
 							final double amount = formatter.parse(args[1]).doubleValue();
 							PlayerControl.onDebit(player, amount);
+						} catch (final ParseException e) {
+							EBChat.invalidAmount(player);
+						}
+					} else
+						EBChat.notAllowed(player);
+				} else if (args.length == 3 && args[0].equalsIgnoreCase("pay")) {
+					if (sender.hasPermission("EasyBank.pay") || sender.hasPermission("EasyBank.*")) {
+						try {
+							final NumberFormat formatter = NumberFormat.getInstance();
+							final double amount = formatter.parse(args[1]).doubleValue();
+							PlayerControl.onPlayerPay(player, amount, args[2]);
 						} catch (final ParseException e) {
 							EBChat.invalidAmount(player);
 						}
@@ -107,7 +112,6 @@ public class CommandExec implements CommandExecutor {
 				} else if (args.length == 2 && args[0].equalsIgnoreCase("look")) {
 					if (sender.hasPermission("EasyBank.banker.look") || sender.hasPermission("EasyBank.banker.*") || sender.hasPermission("EasyBank.*")) {
 						try {
-							Player p = Bukkit.getPlayer(args[1]);
 							BankerControl.onBankerLook(player, args[1]);
 						} catch (NullPointerException e) {
 							EBChat.mustBeOnline(player, args[1]);

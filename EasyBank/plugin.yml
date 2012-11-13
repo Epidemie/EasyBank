@@ -1,6 +1,6 @@
 name: EasyBank
 author: Madlaine
-version: 0.6
+version: 0.7a
 main: fr.Madlaine.EasyBank.EasyBank
 depend: [Vault]
 commands:
@@ -20,6 +20,8 @@ permissions:
         description: Allows the player to deposit money.
     EasyBank.debit:
         description: Allows the player to debit money.
+    EasyBank.pay:
+        description: Allows the player to pay anothe player
     EasyBank.look:
         description: Allows the player to look his bank account amount.
     EasyBank.helpmenu:

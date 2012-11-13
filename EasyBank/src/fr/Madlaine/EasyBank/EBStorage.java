@@ -9,30 +9,19 @@ import java.sql.Statement;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
-import org.fusesource.jansi.Ansi;
 
-public class EBStorage {
+public class EBStorage{
 	
 	private EasyBank plugin;
-	private EBChat EBChat;
-	private static Logger logger = Logger.getLogger("Minecraft");
-	private static String logTag = Ansi.ansi().fg(Ansi.Color.WHITE).boldOff().toString() + "[" + Ansi.ansi().fg(Ansi.Color.WHITE).bold().toString() + "Easy" + Ansi.ansi().fg(Ansi.Color.YELLOW).boldOff().toString() + "Bank" + Ansi.ansi().fg(Ansi.Color.WHITE).boldOff().toString() + "] " + Ansi.ansi().fg(Ansi.Color.WHITE).bold().toString();
 	private  boolean MysqlIsSet;
 
 	
-	public EBStorage(EBChat EBChat, EasyBank easyBank) {
-		this.EBChat = EBChat;
+	public EBStorage(EasyBank easyBank) {
 		this.plugin = easyBank;
 	}
 	
@@ -43,7 +32,6 @@ public class EBStorage {
 			if(MysqlIsSet == true) {
 				try {
 					Connection conn = plugin.conn;
-					String DB = plugin.DB;
 					Statement state = conn.createStatement();
 					ResultSet result = state.executeQuery("SELECT * FROM BankAccount WHERE Player='" + player + "'");
 					while (result.next()) {
@@ -62,8 +50,13 @@ public class EBStorage {
 				FileConfiguration conf = plugin.getConfig();
 				String path = "account." + player + ".ammount";
 				
-				double amount = conf.getDouble(path);
-				return amount;
+				double amount = conf.getDouble(path, -1);
+				if (amount == -1) {
+					return null;
+				} else {
+					return amount;
+				}
+				
 			}
 		} catch (NullPointerException e2) {
 			e2.printStackTrace();
@@ -78,7 +71,6 @@ public class EBStorage {
 		if(MysqlIsSet == true) {
 			try {
 				Connection conn = plugin.conn;
-				String DB = plugin.DB;
 				Statement state = conn.createStatement();
 				state.executeUpdate("UPDATE BankAccount SET Player='" + player + "', Amount=" + amount + "");
 				signUpdate(player);
@@ -102,7 +94,6 @@ public class EBStorage {
 		if(MysqlIsSet == true) {
 			try {
 				Connection conn = plugin.conn;
-				String DB = plugin.DB;
 				Statement state = conn.createStatement();
 				state.executeUpdate("INSERT INTO BankAccount (Player, Amount) VALUES ('" + player + "', " + amount + ")");
 				signUpdate(player);
@@ -119,13 +110,12 @@ public class EBStorage {
 		}
 	}
 	
-	public List<String> getSignLocation(String player) {
+	public ArrayList<String> getSignLocation(String player) {
 		MysqlIsSet = plugin.MysqlIsSet;
-		List<String> liste = new ArrayList<String>();
+		ArrayList<String> liste = new ArrayList<String>();
 		if (MysqlIsSet == true) {
 			try {
 				Connection conn = plugin.conn;
-				String DB = plugin.DB;
 				Statement state = conn.createStatement();
 				ResultSet result = state.executeQuery("SELECT * FROM Sign WHERE Player='" + player + "'");
 				while(result.next()) {
@@ -145,8 +135,7 @@ public class EBStorage {
 			}
 		} else {
 			FileConfiguration sign = plugin.sign;
-			File signFile = plugin.signFile;
-			liste = sign.getStringList("Sign." + player);
+			liste = (ArrayList<String>) sign.getStringList("Sign." + player);
 		}
 		return liste;
 	}
@@ -156,7 +145,6 @@ public class EBStorage {
 		if(MysqlIsSet == true) {
 			try {
 				Connection conn = plugin.conn;
-				String DB = plugin.DB;
 				Statement state = conn.createStatement();
 				state.executeUpdate("INSERT INTO Sign (Player, X, Y, Z, world) VALUES ('" + player + "', " + x + ", " + y + ", " + z + ", '" + world + "')");
 			} catch (SQLException e) {
@@ -165,7 +153,7 @@ public class EBStorage {
 		} else {
 			FileConfiguration sign = plugin.sign;
 			File signFile = plugin.signFile;
-			List<String> liste = getSignLocation(player);
+			ArrayList<String> liste = (ArrayList<String>) getSignLocation(player);
 			liste.add("" + x + "," + y + "," + z + "," + world);
 			sign.set("Sign." + player, liste);
 			try {
@@ -182,7 +170,6 @@ public class EBStorage {
 		if(MysqlIsSet == true) {
 			try {
 				Connection conn = plugin.conn;
-				String DB = plugin.DB;
 				Statement state = conn.createStatement();
 				state.executeUpdate("DELETE FROM easybank.Sign WHERE sign.Player='" + player + "' AND CONCAT(sign.X)=" + x + " AND CONCAT(sign.Y)=" + y + " AND CONCAT(sign.Z)=" + z + " AND sign.world='" + world + "' LIMIT 1");
 			} catch (SQLException e) {
@@ -191,7 +178,7 @@ public class EBStorage {
 		} else {
 			FileConfiguration sign = plugin.sign;
 			File signFile = plugin.signFile;
-			List<String> liste = getSignLocation(player);
+			ArrayList<String> liste = getSignLocation(player);
 			for(int i = 0; i < liste.size(); i++) {
 				if(liste.get(i).equalsIgnoreCase("" + x + "," + y + "," + z + "," + world)) {
 					liste.remove(i);
@@ -207,7 +194,7 @@ public class EBStorage {
 	}
 	
 	public void signUpdate(String p) {
-		List<String> liste = getSignLocation(p);
+		ArrayList<String> liste = getSignLocation(p);
 		if (liste != null) {
 			final NumberFormat formatter = NumberFormat.getInstance();
 			String temp;

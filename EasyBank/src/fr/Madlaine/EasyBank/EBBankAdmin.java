@@ -1,29 +1,18 @@
 package fr.Madlaine.EasyBank;
 
-import java.util.logging.Logger;
-
-import net.milkbowl.vault.economy.Economy;
-
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.fusesource.jansi.Ansi;
-
 public class EBBankAdmin {
 	
-	private static Logger logger = Logger.getLogger("Minecraft");
-	private static String logTag = Ansi.ansi().fg(Ansi.Color.WHITE).boldOff().toString() + "[" + Ansi.ansi().fg(Ansi.Color.WHITE).bold().toString() + "Easy" + Ansi.ansi().fg(Ansi.Color.YELLOW).boldOff().toString() + "Bank" + Ansi.ansi().fg(Ansi.Color.WHITE).boldOff().toString() + "] " + Ansi.ansi().fg(Ansi.Color.WHITE).bold().toString();
-	private EasyBank plugin;
 	private EBChat EBChat;
 	private EBStorage storage;
 
-	public EBBankAdmin(EBChat eBChat2, EBStorage storage2, EasyBank easyBank) {
+	public EBBankAdmin(EBChat eBChat2, EBStorage storage2) {
 		this.EBChat = eBChat2;
 		this.storage = storage2;
-		this.plugin = easyBank;
 	}
 
 	public void onAdminSet(String player, String admin, double amount) {
 		try {
+			@SuppressWarnings("unused")
 			double bankamnt = storage.getData(player);
 			storage.addData(player, amount);
 			EBChat.AdminPlayerSet(admin, player, amount);

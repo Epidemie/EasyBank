@@ -3,11 +3,8 @@ package fr.Madlaine.EasyBank;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
-import net.milkbowl.vault.economy.Economy;
-
 import org.bukkit.ChatColor;
 import org.bukkit.block.Sign;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,13 +16,15 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 
+import com.griefcraft.lwc.LWC;
+
 public class EasyBankListener implements Listener{
 
-	private Economy eco;
 	private EasyBank plugin;
 	private EBPlayer PlayerControl;
 	private EBChat EBChat;
 	private EBStorage storage;
+	private LWC lwc;
 	String signTag = ChatColor.WHITE + "Easy" + ChatColor.GOLD + "Bank";
 
 	public EasyBankListener(EBPlayer playerControl2, EBStorage storage2, EBChat eBChat2, EasyBank easyBank) {
@@ -34,18 +33,13 @@ public class EasyBankListener implements Listener{
 		this.EBChat = eBChat2;
 		this.plugin = easyBank;
 	}
-
-	public boolean setupEconomy(Economy economy) {
-        eco = economy;
-        return true;
-    }
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		Player p = e.getPlayer();
 		if (p.hasPermission("EasyBank.connectmessage")) {
 			try {
-				String player = e.getPlayer().getDisplayName();
+				String player = e.getPlayer().getName();
 				double bankamnt = storage.getData(player);
 				EBChat.PlayerConnect(player, bankamnt);
 			} catch (NullPointerException e1) {
@@ -62,17 +56,23 @@ public class EasyBankListener implements Listener{
 		if (line[0].equalsIgnoreCase("[EasyBank]")){
 			
 			Player p = e.getPlayer();
-			String player = p.getDisplayName();
+			String player = p.getName();
 			Sign s = (Sign) e.getBlock().getState();
 			double x = s.getLocation().getX();
 			double y = s.getLocation().getY();
 			double z = s.getLocation().getZ();
 			String world = s.getLocation().getWorld().getName();
 			
+			if(plugin.test != null) {
+				lwc = plugin.lwc;
+				lwc.enforceAccess(p, lwc.findProtection(s.getBlock()), s.getBlock(), true);
+			}
+			
 			if (line[1].isEmpty() && line[2].isEmpty() && line[3].isEmpty()) {
 				if (p.hasPermission("EasyBank.sign.create.disp") || p.hasPermission("EasyBank.*")) {
 					try {
 						String bankamnt = storage.getData(player).toString();
+						
 						
 						e.setLine(0, signTag);
 						e.setLine(1, player);
@@ -162,13 +162,13 @@ public class EasyBankListener implements Listener{
 					try {
 						final NumberFormat formatter = NumberFormat.getInstance();
 						final double amount = formatter.parse(s.getLine(2)).doubleValue();
-						PlayerControl.onDepo(p.getDisplayName(), amount);
+						PlayerControl.onDepo(p.getName(), amount);
 					} catch (ParseException e1) {
 						e1.printStackTrace();
 					}
 				} else {
 					e.setCancelled(true);
-					EBChat.notAllowed(p.getDisplayName());
+					EBChat.notAllowed(p.getName());
 				}
 			}
 			if (s.getLine(1).equalsIgnoreCase(ChatColor.GREEN + "Debit")) {
@@ -176,14 +176,14 @@ public class EasyBankListener implements Listener{
 					try {
 						final NumberFormat formatter = NumberFormat.getInstance();
 						final double amount = formatter.parse(s.getLine(2)).doubleValue();
-						PlayerControl.onDebit(p.getDisplayName(), amount);
+						PlayerControl.onDebit(p.getName(), amount);
 					} catch (ParseException e1) {
 						e.setCancelled(true);
 						e1.printStackTrace();
 					}
 				} else {
 					e.setCancelled(true);
-					EBChat.notAllowed(p.getDisplayName());
+					EBChat.notAllowed(p.getName());
 				}
 			}
 		}
@@ -197,16 +197,16 @@ public class EasyBankListener implements Listener{
 			
 			if (line[1].equalsIgnoreCase(ChatColor.GREEN + "Deposit")) {
 				if (p.hasPermission("EasyBank.sign.break.depo") || p.hasPermission("EasyBank.*")) {
-					EBChat.PlayerBreakSign(p.getDisplayName());
+					EBChat.PlayerBreakSign(p.getName());
 				} else {
-					EBChat.notAllowed(p.getDisplayName());
+					EBChat.notAllowed(p.getName());
 					e.setCancelled(true);
 				}
 			} else if (line[1].equalsIgnoreCase(ChatColor.GREEN + "Debit")) {
 				if (p.hasPermission("EasyBank.sign.break.debit") || p.hasPermission("EasyBank.*")) {
-					EBChat.PlayerBreakSign(p.getDisplayName());
+					EBChat.PlayerBreakSign(p.getName());
 				} else {
-					EBChat.notAllowed(p.getDisplayName());
+					EBChat.notAllowed(p.getName());
 					e.setCancelled(true);
 				}
 			} else {
@@ -216,20 +216,20 @@ public class EasyBankListener implements Listener{
 				double z = e.getBlock().getLocation().getZ();
 				String world = e.getBlock().getWorld().getName();
 				
-				if (line[1].equalsIgnoreCase(p.getDisplayName())) {
+				if (line[1].equalsIgnoreCase(p.getName())) {
 					if (p.hasPermission("EasyBank.sign.break.disp.my") || p.hasPermission("EasyBank.sign.break.disp.other")) {
-						storage.removeSign(p.getDisplayName(), x, y, z, world);
-						EBChat.PlayerBreakSign(p.getDisplayName());
+						storage.removeSign(p.getName(), x, y, z, world);
+						EBChat.PlayerBreakSign(p.getName());
 					} else {
-						EBChat.notAllowed(p.getDisplayName());
+						EBChat.notAllowed(p.getName());
 						e.setCancelled(true);
 					}
 				} else {
 					if (p.hasPermission("EasyBank.sign.break.disp.other") || p.hasPermission("EasyBank.sign.break.disp.other")) {
-						storage.removeSign(p.getDisplayName(), x, y, z, world);
-						EBChat.PlayerBreakSign(p.getDisplayName());
+						storage.removeSign(p.getName(), x, y, z, world);
+						EBChat.PlayerBreakSign(p.getName());
 					} else {
-						EBChat.notAllowed(p.getDisplayName());
+						EBChat.notAllowed(p.getName());
 						e.setCancelled(true);
 					}
 				}

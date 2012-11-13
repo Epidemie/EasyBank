@@ -1,7 +1,6 @@
 package fr.Madlaine.EasyBank;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -11,16 +10,16 @@ import java.util.logging.Logger;
 import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.block.Block;
-import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.fusesource.jansi.Ansi;
+
+import com.griefcraft.lwc.LWC;
+import com.griefcraft.lwc.LWCPlugin;
 
 public class EasyBank extends JavaPlugin{
 	
@@ -33,7 +32,13 @@ public class EasyBank extends JavaPlugin{
 	private CommandExec myExecutor;
 	private EasyBankListener listener;
 	private EBStorage storage;
+	@SuppressWarnings("unused")
+	private EBApi Api;
+	@SuppressWarnings("unused")
+	private EBApiSet ApiSet;
 	
+	public Plugin test;
+	public LWC lwc;
 	public String Version;
 	public String DB;
 	public boolean MysqlIsSet = false;
@@ -42,26 +47,37 @@ public class EasyBank extends JavaPlugin{
 	public double CreateCost;
 	public Connection conn;
 	public static Economy economy = null;
-	public static File configFile;
-	public static FileConfiguration config;
-	public static File signFile;
-	public static FileConfiguration sign;
-	public static File localFile;
-	public static FileConfiguration local;
+	public File configFile;
+	public FileConfiguration config;
+	public File signFile;
+	public FileConfiguration sign;
+	public File localFile;
+	public FileConfiguration local;
 	
 	public void onEnable(){
 		super.onEnable();
 		
 		EBChat = new EBChat(this);
-		storage = new EBStorage(EBChat, this);
-		listener = new EasyBankListener(PlayerControl, storage, EBChat, this);
-		AdminControl = new EBBankAdmin(EBChat, storage, this);
-		BankerControl = new EBBanker(EBChat, storage, this);
+		storage = new EBStorage(this);
 		PlayerControl = new EBPlayer(EBChat, storage, this);
-		myExecutor = new CommandExec(AdminControl, BankerControl, PlayerControl, EBChat, this);
+		listener = new EasyBankListener(PlayerControl, storage, EBChat, this);
+		AdminControl = new EBBankAdmin(EBChat, storage);
+		BankerControl = new EBBanker(EBChat, storage);
+		ApiSet = new EBApiSet(PlayerControl, BankerControl, AdminControl, storage);
+        myExecutor = new CommandExec(AdminControl, BankerControl, PlayerControl, EBChat);
         
-        PluginManager pm = getServer().getPluginManager();
+		PluginManager pm = Bukkit.getServer().getPluginManager();
+		
+		try {
+			test = pm.getPlugin("LWC");
         
+	        if (test != null || test.isEnabled()) {
+	        	lwc = ((LWCPlugin)test).getLWC();
+	        	logger.info(logTag + "Successfully hooked into LWC !");
+	        }
+		} catch (NullPointerException e) {
+		}
+		
 		if (!setupEconomy()) {
             logger.severe(logTag + "Vault wasn't found, the plugin is going to disable itself!");
             pm.disablePlugin(this);
@@ -83,13 +99,13 @@ public class EasyBank extends JavaPlugin{
         
         localFile = new File(this.getDataFolder(), "local.yml");
         local = YamlConfiguration.loadConfiguration(localFile);
-        
+
         try {
-	        if(!config.getString("Version").equalsIgnoreCase("0.6a")){
+	        if(!config.getString("Version").equalsIgnoreCase("0.7a")){
 	        	try {
 	        		configSet();
 	        		config.save(configFile);
-	        		logger.info(logTag + "Successfully created config.yml");
+	        		logger.info(logTag + "Successfully updated config.yml");
 	        	} catch (Exception e) {
 	        		logger.severe(logTag + "IOException when creating config.yml in Main.");
 	            	e.printStackTrace();
@@ -125,22 +141,33 @@ public class EasyBank extends JavaPlugin{
             }
         }
         
-        if (localFile.exists()) {
-        	logger.info(logTag + "Core local file loaded.");
-        } else {
+        try {
+	        if (local.contains("Bank.Pay")) {
+	        	logger.info(logTag + "Core local file loaded.");
+	        } else {
+	        	try {
+	        		EBChat.localSet();
+	        		logger.info(logTag + "Successfully updated local.yml");
+	        	} catch (Exception e) {
+	        		logger.severe(logTag + "IOException when creating local.yml in Main.");
+	     			e.printStackTrace();
+	        	}
+	        }
+        } catch (NullPointerException e) {
         	try {
         		EBChat.localSet();
         		logger.info(logTag + "Successfully created local.yml");
-        	} catch (Exception e) {
+        	} catch (Exception e1) {
         		logger.severe(logTag + "IOException when creating local.yml in Main.");
-     			e.printStackTrace();
+     			e1.printStackTrace();
         	}
         }
         
-        if (BankerControl.setupEconomy(economy) && EBChat.setupEconomy(economy) && listener.setupEconomy(economy) && PlayerControl.setupEconomy(economy)) {
+        if (BankerControl.setupEconomy(economy) && EBChat.setupEconomy(economy) && PlayerControl.setupEconomy(economy)) {
         	logger.info(logTag + "Economy set");
         } else {
         	logger.severe(logTag + "Internal Error when setting Economy");
+        	pm.disablePlugin(this);
         }
         
         getCommand("bank").setExecutor(myExecutor);
@@ -153,17 +180,22 @@ public class EasyBank extends JavaPlugin{
 		
 		if (config.getBoolean("Interest.Use_Interest") == true) {
 			long repeat = config.getLong("Interest.Interest_Time") * 20;
+			final Object[] ps;
+			if (config.getBoolean("Interest.Only_Connected")) {
+				ps = Bukkit.getOnlinePlayers();
+			} else {
+				ps = config.getConfigurationSection("account").getKeys(false).toArray();
+			}
+			
 			getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-				final Player[] ps = Bukkit.getServer().getOnlinePlayers();
-				
 				   public void run() {
 				       if (config.getString("Interest.Interest_Type").equalsIgnoreCase("percentage")) {
 				    	   double interest = config.getDouble("Interest.Interest_Amount", 0D);
 				    	   try {
 				    		   for (int i = 0; i < ps.length; i++) {
-				    			   double bankamnt = storage.getData(ps[i].getDisplayName());
+				    			   double bankamnt = storage.getData(ps[i].toString());
 				    			   double newba = ((interest/100) * bankamnt) + bankamnt;
-				    			   storage.addData(ps[i].getDisplayName(), newba);
+				    			   storage.addData(ps[i].toString(), newba);
 				    		   }
 				    	   } catch (NullPointerException e) {
 				    		   //Nothing Loool !!
@@ -173,8 +205,8 @@ public class EasyBank extends JavaPlugin{
 				    	   double interest = config.getDouble("Interest.Interest_Amount", 0D);
 				    	   try {
 				    		   for (int i = 0; i < ps.length; i++) {
-				    			   double bankamnt = storage.getData(ps[i].getDisplayName());
-				    			   storage.addData(ps[i].getDisplayName(), bankamnt + interest);
+				    			   double bankamnt = storage.getData(ps[i].toString());
+				    			   storage.addData(ps[i].toString(), bankamnt + interest);
 				    		   }
 				    	   } catch (NullPointerException e) {
 				    		   //Nothing Loool !!
@@ -202,7 +234,7 @@ public class EasyBank extends JavaPlugin{
 	
 	private void configSet() {
 		config.options().header("Welcome to the core of the plugins, please be sure before any edit of this file. To apply any edit, you need to reload your server.");
-    	config.set("Version", "0.6a");
+    	config.set("Version", "0.7a");
     	if (!config.contains("logger")) {
     		config.set("logger", true);
     	}
@@ -229,6 +261,9 @@ public class EasyBank extends JavaPlugin{
     	}
     	if (!config.contains("Interest.Use_Interest")) {
     		config.set("Interest.Use_Interest", false);
+    	}
+    	if (!config.contains("Interest.Only_Connected")) {
+    		config.set("Interest.Only_Connected", true);
     	}
     	if (!config.contains("Interest.Interest_Time")) {
     		config.set("Interest.Interest_Time", 60);
